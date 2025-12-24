@@ -24,3 +24,15 @@ export type ProjectProgress = {
   done: number;
   pct: number; // 0..100
 };
+
+// Spring Data style page response
+export type Page<T> = {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number; // 0-based
+  first?: boolean;
+  last?: boolean;
+  numberOfElements?: number;
+};

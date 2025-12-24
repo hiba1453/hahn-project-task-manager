@@ -18,8 +18,11 @@ import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import GradientBackdrop from '../components/GradientBackdrop';
 import GlassCard from '../components/GlassCard';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useMemo, useState } from 'react';
+
+/* ✅ FIX Framer Motion */
+const MotionDiv = motion.create('div');
 
 function validateEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
@@ -46,7 +49,8 @@ export default function AuthPage() {
     return true;
   }, [email, password, fullName, tab]);
 
-  if (isAuthenticated) return null;
+  /* ✅ REDIRECT PROPRE */
+  if (isAuthenticated) return <Navigate to="/app" replace />;
 
   async function onSubmit() {
     setError(null);
@@ -58,6 +62,28 @@ export default function AuthPage() {
     } catch (e: any) {
       const msg = e?.response?.data?.message || e?.message || 'Network error';
       setError(String(msg));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onTryDemo() {
+    setError(null);
+    setLoading(true);
+    const demoEmail = 'demo@mail.com';
+    const demoPassword = 'Demo12345!';
+    try {
+      await login(demoEmail, demoPassword);
+      nav('/app');
+    } catch {
+      try {
+        await register(demoEmail, demoPassword, 'Demo User');
+        await login(demoEmail, demoPassword);
+        nav('/app');
+      } catch (e: any) {
+        const msg = e?.response?.data?.message || e?.message || 'Demo login failed';
+        setError(String(msg));
+      }
     } finally {
       setLoading(false);
     }
@@ -76,7 +102,7 @@ export default function AuthPage() {
         }}
       >
         <Stack spacing={2} alignItems="center" sx={{ width: '100%' }}>
-          
+
           <Box
             component="img"
             src="/TaskFlowLogo2.png"
@@ -85,8 +111,7 @@ export default function AuthPage() {
               width: { xs: 200, sm: 260 },
               maxWidth: '70vw',
               height: 'auto',
-              objectFit: 'contain',
-              imageRendering: 'auto'
+              objectFit: 'contain'
             }}
           />
 
@@ -96,7 +121,9 @@ export default function AuthPage() {
                 <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1 }}>
                   {tab === 0 ? 'Welcome back' : 'Create your account'}
                 </Typography>
-                <Typography color="text.secondary">Flow. Focus. Finish.</Typography>
+                <Typography color="text.secondary">
+                  Flow. Focus. Finish.
+                </Typography>
               </Stack>
 
               <Tabs
@@ -132,25 +159,27 @@ export default function AuthPage() {
                     label="Full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    autoComplete="name"
                     fullWidth
                   />
                 )}
 
-                <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" fullWidth />
+                <TextField
+                  label="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  fullWidth
+                />
 
                 <TextField
                   label="Password"
                   type={showPwd ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={tab === 0 ? 'current-password' : 'new-password'}
                   fullWidth
-                  helperText={tab === 1 ? 'Minimum 6 characters' : undefined}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setShowPwd((s) => !s)} edge="end">
+                        <IconButton onClick={() => setShowPwd(s => !s)}>
                           {showPwd ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
                         </IconButton>
                       </InputAdornment>
@@ -168,18 +197,34 @@ export default function AuthPage() {
                   {loading ? 'Please wait…' : tab === 0 ? 'Login' : 'Create account'}
                 </Button>
 
-                <Divider sx={{ my: 0.5 }} />
+                <Divider />
+
+                <Button
+                  variant="outlined"
+                  size="large"
+                  disabled={loading}
+                  onClick={onTryDemo}
+                  sx={{ py: 1.2, borderRadius: 2, fontWeight: 900 }}
+                >
+                  Try demo
+                </Button>
               </Stack>
             </Stack>
           </GlassCard>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+          <MotionDiv
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             <Typography variant="caption" color="text.secondary">
               © {new Date().getFullYear()} TaskFlow
             </Typography>
-          </motion.div>
+          </MotionDiv>
+
         </Stack>
       </Container>
     </GradientBackdrop>
   );
 }
+

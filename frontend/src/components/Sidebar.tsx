@@ -85,7 +85,7 @@ export default function Sidebar() {
       <Box sx={{ px: 2, py: 2 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
           <Avatar
-            src="/TaskFlowLogo2.png" // mets ton logo correct dans public/logo.png
+            src="/TaskFlowLogo2.png" 
             variant="rounded"
             sx={{
               width: 120,

@@ -24,6 +24,7 @@ import AppShell from '../components/AppShell';
 import GlassCard from '../components/GlassCard';
 import TaskItem from '../components/TaskItem';
 import StatCard from '../components/StatCard';
+import PaginationBar from '../components/PaginationBar';
 import { addTask, getMyProjects, getTasks, toggleTask } from '../api/endpoints';
 import type { Project, Task } from '../api/types';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +45,10 @@ export default function TasksPage() {
   const [tab, setTab] = useState<TaskFilter>('all');
   const [q, setQ] = useState('');
   const [err, setErr] = useState<string | null>(null);
+
+  // pagination (client-side)
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(8);
 
   // Add dialog
   const [addOpen, setAddOpen] = useState(false);
@@ -66,6 +71,7 @@ export default function TasksPage() {
         })
       );
       setRows(all.flat());
+      setPage(0); 
     } catch (e: any) {
       setErr(e?.message || 'Network error');
     } finally {
@@ -139,6 +145,17 @@ export default function TasksPage() {
     });
   }, [rows, tab, q, today]);
 
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filtered.length / pageSize)), [filtered.length, pageSize]);
+  const pagedItems = useMemo(() => {
+    const start = page * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page, pageSize]);
+
+  // keep page in range when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [tab, q, pageSize]);
+
   const totals = useMemo(() => {
     const total = rows.length;
     const done = rows.filter((t) => t.completed).length;
@@ -171,7 +188,6 @@ export default function TasksPage() {
     setTitle('');
     setDescription('');
     setDueDate('');
-    // default project = first project if exists
     setProjectId(projects[0]?.id ?? '');
     setAddOpen(true);
   };
@@ -193,9 +209,9 @@ export default function TasksPage() {
         projectTitle: p?.title ?? 'Project'
       };
 
-      // show instantly on top
       setRows((xs) => [row, ...xs]);
       setAddOpen(false);
+      setPage(0);
     } catch (e: any) {
       setErr(e?.response?.data?.message || e?.message || 'Could not create task');
     }
@@ -221,55 +237,51 @@ export default function TasksPage() {
     >
       <Container maxWidth="lg" sx={{ py: { xs: 2.5, md: 3.5 } }}>
         <Stack spacing={2.5}>
-          {/* HERO + SEARCH */}
           <GlassCard sx={{ p: 2.5 }}>
-  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
-    <Box sx={{ flex: 1 }}>
-      <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -0.6 }}>
-        All tasks
-      </Typography>
-      <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-        Across your projects — filter, review, and keep flow.
-      </Typography>
-    </Box>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -0.6 }}>
+                  All tasks
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                  Across your projects — filter, review, and keep flow.
+                </Typography>
+              </Box>
 
-    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ width: { xs: '100%', md: 'auto' } }}>
-      <TextField
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search tasks / project"
-        size="small"
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchRoundedIcon fontSize="small" />
-            </InputAdornment>
-          )
-        }}
-        sx={{ width: { xs: '100%', md: 320 } }}
-      />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ width: { xs: '100%', md: 'auto' } }}>
+                <TextField
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search tasks / project"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchRoundedIcon fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }}
+                  sx={{ width: { xs: '100%', md: 320 } }}
+                />
 
-      <Button
-        variant="contained"
-        startIcon={<AddRoundedIcon />}
-        onClick={openAdd}
-        sx={{
-          borderRadius: 2,
-          textTransform: 'none',
-          whiteSpace: 'nowrap',
-          background: 'linear-gradient(90deg, rgba(11,77,255,1), rgba(23,195,178,1))'
-        }}
-      >
-        Add task
-      </Button>
-    </Stack>
-  </Stack>
-</GlassCard>
+                <Button
+                  variant="contained"
+                  startIcon={<AddRoundedIcon />}
+                  onClick={openAdd}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap',
+                    background: 'linear-gradient(90deg, rgba(11,77,255,1), rgba(23,195,178,1))'
+                  }}
+                >
+                  Add task
+                </Button>
+              </Stack>
+            </Stack>
+          </GlassCard>
 
-
-          {/* ✅ TASKS LEFT / STATS RIGHT */}
           <Grid container spacing={3}>
-            {/* LEFT: Tasks */}
             <Grid item xs={12} md={8}>
               <GlassCard sx={{ p: 2.75 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5} gap={2}>
@@ -277,7 +289,7 @@ export default function TasksPage() {
                     Tasks
                   </Typography>
 
-                  <Box sx={{ minWidth: 420 }}>
+                  <Box sx={{ minWidth: { xs: 260, sm: 420 } }}>
                     <Tabs
                       value={tab}
                       onChange={(_, v) => setTab(v)}
@@ -310,33 +322,41 @@ export default function TasksPage() {
                 ) : filtered.length === 0 ? (
                   <Box sx={{ py: 8, textAlign: 'center' }}>
                     <Typography sx={{ fontWeight: 800 }}>Nothing here.</Typography>
-                    <Typography color="text.secondary">
-                      Try another filter, search, or add a task.
-                    </Typography>
+                    <Typography color="text.secondary">Try another filter, search, or add a task.</Typography>
                   </Box>
                 ) : (
-                  <Stack spacing={1.25}>
-                    {filtered.map((t) => (
-                      <Box key={`${t.projectId}-${t.id}`}>
-                        <TaskItem
-                          task={t}
-                          onToggle={() => onToggle(t)}
-                          onEdit={() => nav(`/projects/${t.projectId}`)}
-                          onDelete={() => nav(`/projects/${t.projectId}`)}
-                          prefix={
-                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>
-                              {t.projectTitle}
-                            </Typography>
-                          }
-                        />
-                      </Box>
-                    ))}
-                  </Stack>
+                  <>
+                    <Stack spacing={1.25}>
+                      {pagedItems.map((t) => (
+                        <Box key={`${t.projectId}-${t.id}`}>
+                          <TaskItem
+                            task={t}
+                            onToggle={() => onToggle(t)}
+                            onEdit={() => nav(`/projects/${t.projectId}`)}
+                            onDelete={() => nav(`/projects/${t.projectId}`)}
+                            prefix={
+                              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>
+                                {t.projectTitle}
+                              </Typography>
+                            }
+                          />
+                        </Box>
+                      ))}
+                    </Stack>
+
+                    <PaginationBar
+                      page={page}
+                      totalPages={totalPages}
+                      pageSize={pageSize}
+                      onPageChange={setPage}
+                      onPageSizeChange={(s) => setPageSize(s)}
+                      pageSizeOptions={[6, 8, 12, 16, 24]}
+                    />
+                  </>
                 )}
               </GlassCard>
             </Grid>
 
-            {/* RIGHT: Stats */}
             <Grid item xs={12} md={4}>
               <Stack spacing={2.25}>
                 <StatCard label="Projects" value={projects.length} hint="Where tasks live" />
@@ -348,7 +368,6 @@ export default function TasksPage() {
         </Stack>
       </Container>
 
-      {/* ADD TASK DIALOG */}
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontWeight: 900 }}>New task</DialogTitle>
         <DialogContent>

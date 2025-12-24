@@ -38,7 +38,7 @@ public void init() {
         Date expiry = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .setSubject(email)      // ✅ subject = email
+                .setSubject(email)      
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(key)
@@ -46,7 +46,7 @@ public void init() {
     }
 
     public String extractEmail(String token) {
-        return getClaims(token).getSubject(); // ✅ subject
+        return getClaims(token).getSubject(); 
     }
 
     public boolean isTokenValid(String token) {

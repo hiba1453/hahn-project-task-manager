@@ -2,6 +2,8 @@ package com.hahn.projectmanager.service.impl;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.hahn.projectmanager.dto.ProjectCreateRequest;
@@ -43,6 +45,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public Page<Project> getMyProjectsPaged(Long userId, Pageable pageable) {
+        return projectRepository.findByOwnerId(userId, pageable);
+    }
+
+    @Override
     public Project getMyProjectById(Long userId, Long projectId) {
         Project p = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
@@ -53,7 +60,6 @@ public class ProjectServiceImpl implements ProjectService {
         return p;
     }
 
-    
     @Override
     public Project updateMyProject(Long userId, Long projectId, ProjectUpdateRequest req) {
         Project p = getMyProjectById(userId, projectId);
@@ -62,7 +68,7 @@ public class ProjectServiceImpl implements ProjectService {
         return projectRepository.save(p);
     }
 
-@Override
+    @Override
     public void deleteMyProject(Long userId, Long projectId) {
         Project p = getMyProjectById(userId, projectId);
         projectRepository.delete(p);

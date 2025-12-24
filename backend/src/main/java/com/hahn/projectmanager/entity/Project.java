@@ -26,13 +26,11 @@ public class Project {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // Propriétaire du projet
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
 
-    // Tâches du projet
     @JsonManagedReference
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

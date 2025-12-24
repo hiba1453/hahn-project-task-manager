@@ -18,6 +18,7 @@ public class ProgressServiceImpl implements ProgressService {
 
     @Override
     public ProgressResponse getProgress(Long userId, Long projectId) {
+        // vérifie que le project appartient à l'user
         projectService.getMyProjectById(userId, projectId);
 
         long total = taskRepository.countByProjectId(projectId);

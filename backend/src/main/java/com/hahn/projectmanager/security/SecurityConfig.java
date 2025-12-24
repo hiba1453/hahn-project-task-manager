@@ -26,16 +26,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         return http
-            // ✅ CORS activé (utilise le bean CorsConfigurationSource ci-dessous)
             .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
 
-            // ✅ Stateless JWT
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // ✅ Gestion des erreurs sécurité
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) -> {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -47,28 +44,21 @@ public class SecurityConfig {
                 })
             )
 
-            // ✅ Autorisations
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )
 
-            // ❌ Désactivation auth classiques
             .httpBasic(basic -> basic.disable())
             .formLogin(form -> form.disable())
 
-            // ✅ JWT Filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
             .build();
     }
 
-    /**
-     * ✅ Configuration CORS globale
-     * - Autorise localhost sur tous les ports (5173, 5174, etc.)
-     * - Autorise PATCH (obligatoire pour /toggle)
-     */
+    
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 

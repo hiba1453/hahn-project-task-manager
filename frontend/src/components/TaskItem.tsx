@@ -76,6 +76,7 @@ export default function TaskItem({
             <Typography
               variant="subtitle1"
               sx={{
+                flex: 1,
                 fontWeight: 800,
                 textDecoration: task.completed ? 'line-through' : 'none',
                 opacity: task.completed ? 0.65 : 1,

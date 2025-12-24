@@ -1,0 +1,13 @@
+/* GLOBAL RESET – OBLIGATOIRE */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Empêche les bandes blanches horizontales */
+body {
+  overflow-x: hidden;
+  background: #F7FAFF;
+}

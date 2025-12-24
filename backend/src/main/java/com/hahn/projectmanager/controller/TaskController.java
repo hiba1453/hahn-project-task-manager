@@ -2,21 +2,15 @@ package com.hahn.projectmanager.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 
 import com.hahn.projectmanager.dto.TaskCreateRequest;
 import com.hahn.projectmanager.dto.TaskUpdateRequest;
 import com.hahn.projectmanager.entity.Task;
-import com.hahn.projectmanager.service.TaskService;
 import com.hahn.projectmanager.service.CurrentUserService;
+import com.hahn.projectmanager.service.TaskService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +23,6 @@ public class TaskController {
     private final TaskService taskService;
     private final CurrentUserService currentUserService;
 
-
     @PostMapping
     public Task addTask(
             @PathVariable Long projectId,
@@ -41,6 +34,22 @@ public class TaskController {
     @GetMapping
     public List<Task> getTasks(@PathVariable Long projectId) {
         return taskService.getTasks(currentUserService.getIdOrThrow(), projectId);
+    }
+
+    @GetMapping("/paged")
+    public Page<Task> getTasksPaged(
+            @PathVariable Long projectId,
+            Pageable pageable
+    ) {
+        return taskService.getTasksPaged(currentUserService.getIdOrThrow(), projectId, pageable);
+    }
+
+    @GetMapping("/{taskId}")
+    public Task getTask(
+            @PathVariable Long projectId,
+            @PathVariable Long taskId
+    ) {
+        return taskService.getTaskById(currentUserService.getIdOrThrow(), projectId, taskId);
     }
 
     @PutMapping("/{taskId}")
@@ -67,17 +76,4 @@ public class TaskController {
     ) {
         taskService.deleteTask(currentUserService.getIdOrThrow(), projectId, taskId);
     }
-
-    @GetMapping("/{taskId}")
-    public Task getTask(
-        @PathVariable Long projectId,
-        @PathVariable Long taskId
-    ) {
-    return taskService.getTaskById(
-            currentUserService.getIdOrThrow(),
-            projectId,
-            taskId
-    );
-}
-
 }

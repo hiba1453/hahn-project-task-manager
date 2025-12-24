@@ -18,13 +18,22 @@ import {
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts";
 import AppShell from "../components/AppShell";
 import GradientBackdrop from "../components/GradientBackdrop";
 import GlassCard from "../components/GlassCard";
 import ProgressBar from "../components/ProgressBar";
 import StatCard from "../components/StatCard";
-import { getMyProjects, createProject, getProjectProgressSafe } from "../api/endpoints";
+import PaginationBar from "../components/PaginationBar";
+import { getProjectsPaged, createProject, getProjectProgressSafe } from "../api/endpoints";
 import type { Project, ProjectProgress } from "../api/types";
 import { useNavigate } from "react-router-dom";
 
@@ -34,6 +43,10 @@ export default function DashboardPage() {
   const nav = useNavigate();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(8);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
   const [progress, setProgress] = useState<Record<number, ProjectProgress>>({});
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<ProjectFilter>("all");
@@ -43,12 +56,17 @@ export default function DashboardPage() {
   const [description, setDescription] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
-  async function refresh() {
+  async function refresh(nextPage = page, nextSize = pageSize) {
     setLoading(true);
     setErr(null);
     try {
-      const list = await getMyProjects();
+      const paged = await getProjectsPaged(nextPage, nextSize);
+      const list = paged.content ?? [];
       setProjects(list);
+      setTotalPages(paged.totalPages ?? 1);
+      setTotalElements(paged.totalElements ?? list.length);
+      setPage(paged.number ?? nextPage);
+      setPageSize(paged.size ?? nextSize);
 
       const entries = await Promise.all(
         list.map(async (p) => {
@@ -68,9 +86,12 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    void refresh();
+    void refresh(0, pageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Note: search/filter are client-side on the *current page*.
+  // (Backend pagination doesn't currently expose search params.)
   const searched = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return projects;
@@ -109,11 +130,13 @@ export default function DashboardPage() {
   }, [progress]);
 
   const chartData = useMemo(() => {
-    // Toujours basé sur "filtered" pour coller au filtre
-    return filtered.map((p) => ({
-      name: p.title.length > 12 ? p.title.slice(0, 12) + "…" : p.title,
-      progress: progress[p.id]?.pct ?? 0,
-    }));
+    // Based on current page (and current UI filter/search)
+    return filtered
+      .map((p) => ({
+        name: p.title.length > 18 ? p.title.slice(0, 18) + "…" : p.title,
+        progress: progress[p.id]?.pct ?? 0,
+      }))
+      .sort((a, b) => b.progress - a.progress);
   }, [filtered, progress]);
 
   async function onCreate() {
@@ -124,28 +147,29 @@ export default function DashboardPage() {
       setOpen(false);
       setTitle("");
       setDescription("");
-      await refresh();
+      await refresh(0, pageSize);
     } catch (e: any) {
       setErr(e?.response?.data?.message || e?.message || "Could not create project");
     }
   }
 
-  const countEmpty = useMemo(
-    () => projects.filter((p) => (progress[p.id]?.total ?? 0) === 0).length,
-    [projects, progress]
-  );
-  const countCompleted = useMemo(
-    () => projects.filter((p) => (progress[p.id]?.pct ?? 0) === 100 && (progress[p.id]?.total ?? 0) > 0).length,
-    [projects, progress]
-  );
-  const countActive = useMemo(
-    () =>
-      projects.filter((p) => {
-        const pr = progress[p.id];
-        return pr ? pr.total > 0 && pr.pct < 100 : false;
-      }).length,
-    [projects, progress]
-  );
+  const countEmpty = useMemo(() => projects.filter((p) => (progress[p.id]?.total ?? 0) === 0).length, [projects, progress]);
+  const countCompleted = useMemo(() => projects.filter((p) => (progress[p.id]?.pct ?? 0) === 100 && (progress[p.id]?.total ?? 0) > 0).length, [projects, progress]);
+  const countActive = useMemo(() => projects.filter((p) => {
+    const pr = progress[p.id];
+    return pr ? pr.total > 0 && pr.pct < 100 : false;
+  }).length, [projects, progress]);
+
+  const onPageChange = (p: number) => {
+    setPage(p);
+    void refresh(p, pageSize);
+  };
+
+  const onPageSizeChange = (s: number) => {
+    setPageSize(s);
+    setPage(0);
+    void refresh(0, s);
+  };
 
   return (
     <GradientBackdrop>
@@ -240,7 +264,7 @@ export default function DashboardPage() {
                         Projects
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {filtered.length} project(s) — click to open
+                        {filtered.length} shown — {totalElements} total
                       </Typography>
                     </Box>
 
@@ -284,11 +308,14 @@ export default function DashboardPage() {
                                   p: 2,
                                   cursor: "pointer",
                                   borderRadius: 2,
+                                  minHeight: 148,
+                                  display: "flex",
+                                  flexDirection: "column",
                                   transition: "transform .16s ease, box-shadow .16s ease",
                                   "&:hover": { transform: "translateY(-2px)" },
                                 }}
                               >
-                                <Stack spacing={1}>
+                                <Stack spacing={1} sx={{ flex: 1 }}>
                                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}>
                                     <Typography sx={{ fontWeight: 900, lineHeight: 1.2 }} noWrap>
                                       {p.title}
@@ -296,7 +323,17 @@ export default function DashboardPage() {
                                     <Chip label={`${pr.pct}%`} size="small" />
                                   </Box>
 
-                                  <Typography variant="body2" color="text.secondary" sx={{ minHeight: 36 }}>
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{
+                                      minHeight: 36,
+                                      display: "-webkit-box",
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: "vertical",
+                                      overflow: "hidden",
+                                    }}
+                                  >
                                     {p.description || "No description"}
                                   </Typography>
 
@@ -312,6 +349,14 @@ export default function DashboardPage() {
                       </Grid>
                     )}
                   </Box>
+
+                  <PaginationBar
+                    page={page}
+                    totalPages={totalPages}
+                    pageSize={pageSize}
+                    onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
+                  />
                 </GlassCard>
               </Grid>
 
@@ -319,7 +364,7 @@ export default function DashboardPage() {
               <Grid item xs={12} md={4} sx={{ minHeight: 0 }}>
                 <Stack spacing={2} sx={{ height: "100%", minHeight: 0 }}>
                   {/* stats */}
-                  <StatCard label="Projects" value={projects.length} hint="Active in your workspace" />
+                  <StatCard label="Projects" value={totalElements} hint="Active in your workspace" />
                   <StatCard label="Tasks" value={totals.totalTasks} hint="Total across projects" />
                   <StatCard label="Completed" value={`${totals.pct}%`} hint={`${totals.doneTasks}/${totals.totalTasks} done`} />
 
@@ -327,8 +372,7 @@ export default function DashboardPage() {
                   <GlassCard
                     sx={{
                       p: 2,
-                      flex: 1,
-                      minHeight: 0,
+                      height: 320,
                       display: "flex",
                       flexDirection: "column",
                       borderRadius: 2,
@@ -346,19 +390,13 @@ export default function DashboardPage() {
                         </Box>
                       ) : (
                         <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                            <defs>
-                              <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#0B4DFF" stopOpacity={0.28} />
-                                <stop offset="95%" stopColor="#17C3B2" stopOpacity={0.06} />
-                              </linearGradient>
-                            </defs>
+                          <BarChart data={chartData} layout="vertical" margin={{ top: 6, right: 10, left: 10, bottom: 6 }}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" tickMargin={8} />
-                            <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                            <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                            <YAxis type="category" dataKey="name" width={110} />
                             <Tooltip formatter={(v: any) => `${v}%`} />
-                            <Area type="monotone" dataKey="progress" stroke="#0B4DFF" fill="url(#area)" />
-                          </AreaChart>
+                            <Bar dataKey="progress" radius={[8, 8, 8, 8]} />
+                          </BarChart>
                         </ResponsiveContainer>
                       )}
                     </Box>

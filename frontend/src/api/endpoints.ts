@@ -1,6 +1,6 @@
 // src/api/endpoints.ts
 import { api } from './client';
-import type { AuthResponse, Project, ProjectProgress, Task } from './types';
+import type { AuthResponse, Page, Project, ProjectProgress, Task } from './types';
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
   const { data } = await api.post<AuthResponse>('/auth/login', { email, password });
@@ -14,6 +14,13 @@ export async function register(email: string, password: string, fullName: string
 
 export async function getProjects(): Promise<Project[]> {
   const { data } = await api.get<Project[]>('/projects');
+  return data;
+}
+
+export async function getProjectsPaged(page = 0, size = 8): Promise<Page<Project>> {
+  const { data } = await api.get<Page<Project>>('/projects/paged', {
+    params: { page, size }
+  });
   return data;
 }
 

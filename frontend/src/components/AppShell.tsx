@@ -22,20 +22,17 @@ export default function AppShell({
           flex: 1,
           minWidth: 0,
           height: "100vh",
-          overflow: "hidden", // 🔥 pas de scroll global
+          overflow: "hidden", 
           display: "flex",
           flexDirection: "column",
         }}
       >
-        {/* Header/topbar (si tu en as un, garde-le ici) */}
-        {/* Optionnel: tu peux mettre un header fixe ici */}
-
-        {/* Content */}
+        
         <Box
           sx={{
             flex: 1,
             minHeight: 0,
-            overflow: "hidden", // 🔥 le dashboard gère ses scrolls internes
+            overflow: "hidden", 
           }}
         >
           {children}

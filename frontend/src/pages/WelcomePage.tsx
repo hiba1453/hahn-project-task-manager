@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import {
   Box,
   Button,
-  Container,
   IconButton,
   Stack,
   Typography
@@ -27,7 +26,7 @@ export default function WelcomePage() {
       'Your progress updates automatically from completed tasks.',
       'Use “Tasks” to see everything across all projects.',
       'Less noise. More flow.',
-      'One click to toggle tasks. Done or not done.',
+      'One click to toggle tasks. Done or not done.'
     ],
     []
   );
@@ -36,86 +35,81 @@ export default function WelcomePage() {
 
   return (
     <GradientBackdrop>
-      <Container
-        maxWidth="md"
+      {/* FULL SCREEN ROOT */}
+      <Box
         sx={{
-          minHeight: '00vh',
+          minHeight: '60dvh',
+          width: '100%',
           display: 'grid',
           placeItems: 'center',
-          overflow: 'hidden',
-          py: 2
+          px: { xs: 2, sm: 4, md: 8, lg: 12 },
+          overflow: 'hidden'
         }}
       >
-        <Box sx={{ width: '100%' }}>
-          {/* soft decorative blobs */}
+        <Box
+          sx={{
+            position: 'relative',
+            width: '100%',
+            display: 'grid',
+            placeItems: 'center'
+          }}
+        >
           <Box
             aria-hidden
             sx={{
               position: 'absolute',
-              inset: -80,
+              inset: -120,
               pointerEvents: 'none',
-              opacity: 0.75,
+              opacity: 0.95,
               backgroundImage: `
-                radial-gradient(circle at 20% 30%, rgba(11,77,255,0.14), transparent 48%),
-                radial-gradient(circle at 80% 20%, rgba(23,195,178,0.14), transparent 52%),
-                radial-gradient(circle at 55% 85%, rgba(11,77,255,0.10), transparent 55%)
+                radial-gradient(circle at 15% 30%, rgba(11,77,255,0.16), transparent 55%),
+                radial-gradient(circle at 85% 25%, rgba(23,195,178,0.16), transparent 60%),
+                radial-gradient(circle at 55% 90%, rgba(11,77,255,0.12), transparent 65%)
               `
             }}
           />
 
           <Stack
-            spacing={2.2}
+            spacing={{ xs: 1.6, sm: 2.8 }}
             alignItems="center"
             sx={{
               textAlign: 'center',
               position: 'relative',
-              px: { xs: 2, sm: 0 }
+              width: '100%'
             }}
           >
-            {/* LOGO */}
             <MotionBox
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              initial={{ opacity: 0, y: 14, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.55 }}
-              sx={{ display: 'grid', placeItems: 'center' }}
+              transition={{ duration: 0.6 }}
             >
-              <motion.div
-  initial={{ opacity: 0, scale: 0.95 }}
-  animate={{ opacity: 1, scale: 1 }}
-  transition={{ duration: 2, ease: 'easeOut' }}
->
-  <Box
-  component="img"
-  src="/TaskFlowLogo2.png"
-  alt="TaskFlow"
-  sx={{
-    width: { xs: 180, sm: 220, md: 260 },
-    maxWidth: '90vw',
-    height: 'auto',
-    objectFit: 'contain',
-    filter: `
-      drop-shadow(0 18px 40px rgba(11,77,255,0.28))
-      drop-shadow(0 6px 12px rgba(0,0,0,0.08))
-    `
-  }}
-/> 
-</motion.div>
-
-
+              <Box
+                component="img"
+                src="/TaskFlowLogo2.png"
+                alt="TaskFlow"
+                sx={{
+                  width: 'auto',
+                  maxWidth: { xs: '90vw', md: '60vw', lg: '45vw' },
+                  height: 'auto',
+                  filter: `
+                    drop-shadow(0 22px 50px rgba(11,77,255,0.30))
+                    drop-shadow(0 8px 16px rgba(0,0,0,0.08))
+                  `
+                }}
+              />
             </MotionBox>
 
-            {/* TITLE */}
             <MotionBox
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.06 }}
+              transition={{ delay: 0.08 }}
             >
               <Typography
-                variant="h2"
                 sx={{
                   fontWeight: 950,
-                  letterSpacing: -1.6,
-                  lineHeight: 1.05
+                  letterSpacing: { xs: -1, sm: -1.8 },
+                  lineHeight: 1.05,
+                  fontSize: { xs: 36, sm: 56, md: 72, lg: 84 }
                 }}
               >
                 Welcome to{' '}
@@ -132,14 +126,19 @@ export default function WelcomePage() {
               </Typography>
             </MotionBox>
 
-            {/* DESCRIPTION */}
             <MotionBox
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.12 }}
-              sx={{ maxWidth: 720 }}
+              transition={{ delay: 0.14 }}
+              sx={{ maxWidth: 960 }}
             >
-              <Typography variant="h6" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
+              <Typography
+                sx={{
+                  color: 'text.secondary',
+                  lineHeight: 1.5,
+                  fontSize: { xs: 15, sm: 19, md: 21 }
+                }}
+              >
                 A simple workspace to plan your projects, break work into tasks, and track completion
                 with a clean, modern UI.
                 <br />
@@ -148,36 +147,32 @@ export default function WelcomePage() {
                 </Box>
               </Typography>
             </MotionBox>
-
-            {/* ACTIONS */}
             <MotionBox
-              initial={{ opacity: 0, y: 14 }}
+              initial={{ opacity: 0, y: 22 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, delay: 0.18 }}
-              sx={{ mt: 0.5, width: '100%', maxWidth: 520 }}
+              transition={{ delay: 0.2 }}
+              sx={{ width: '100%', maxWidth: 680 }}
             >
-              <Stack spacing={1.25}>
+              <Stack spacing={1.3}>
                 <Button
                   size="large"
                   variant="contained"
                   endIcon={<ArrowForwardRoundedIcon />}
                   onClick={() => nav('/auth')}
                   sx={{
-                    py: 1.4,
-                    borderRadius: 2,
+                    py: 1.5,
+                    borderRadius: 2.5,
                     textTransform: 'none',
                     fontWeight: 900,
-                    background: 'linear-gradient(90deg, rgba(11,77,255,1), rgba(23,195,178,1))',
-                    boxShadow: '0 18px 50px rgba(11,77,255,0.18)',
-                    '&:hover': {
-                      boxShadow: '0 22px 60px rgba(11,77,255,0.22)'
-                    }
+                    fontSize: 18,
+                    background: 'linear-gradient(90deg, #0B4DFF, #17C3B2)',
+                    boxShadow: '0 22px 60px rgba(11,77,255,0.22)'
                   }}
                 >
                   Let’s start
                 </Button>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.3}>
                   <Button
                     fullWidth
                     size="large"
@@ -185,13 +180,11 @@ export default function WelcomePage() {
                     startIcon={<LoginRoundedIcon />}
                     onClick={() => nav('/auth?mode=login')}
                     sx={{
-                      py: 1.2,
-                      borderRadius: 2,
-                      textTransform: 'none',
+                      py: 1.3,
+                      borderRadius: 2.5,
                       fontWeight: 850,
-                      borderColor: 'rgba(15, 23, 42, 0.18)',
-                      backgroundColor: 'rgba(255,255,255,0.55)',
-                      '&:hover': { backgroundColor: 'rgba(255,255,255,0.70)' }
+                      fontSize: 16,
+                      backgroundColor: 'rgba(255,255,255,0.6)'
                     }}
                   >
                     I already have an account
@@ -202,15 +195,13 @@ export default function WelcomePage() {
                     size="large"
                     variant="outlined"
                     startIcon={<PlayCircleOutlineRoundedIcon />}
-                    onClick={() => nav('/app')}
+                    onClick={() => nav('/dashboard')}
                     sx={{
-                      py: 1.2,
-                      borderRadius: 2,
-                      textTransform: 'none',
+                      py: 1.3,
+                      borderRadius: 2.5,
                       fontWeight: 850,
-                      borderColor: 'rgba(15, 23, 42, 0.18)',
-                      backgroundColor: 'rgba(255,255,255,0.55)',
-                      '&:hover': { backgroundColor: 'rgba(255,255,255,0.70)' }
+                      fontSize: 16,
+                      backgroundColor: 'rgba(255,255,255,0.6)'
                     }}
                   >
                     Try demo
@@ -219,45 +210,42 @@ export default function WelcomePage() {
               </Stack>
             </MotionBox>
 
-            {/* INTERACTIVE TIP (no card) */}
+            {/* TIP */}
             <MotionBox
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.25 }}
+              transition={{ delay: 0.3 }}
               sx={{
-                mt: 0.5,
-                display: 'inline-flex',
+                mt: 0.4,
+                display: { xs: 'none', sm: 'inline-flex' },
                 alignItems: 'center',
                 gap: 1,
-                px: 1.25,
-                py: 0.75,
+                px: 1.6,
+                py: 0.9,
                 borderRadius: 999,
-                backgroundColor: 'rgba(255,255,255,0.55)',
-                border: '1px solid rgba(15, 23, 42, 0.10)'
+                backgroundColor: 'rgba(255,255,255,0.6)',
+                border: '1px solid rgba(15, 23, 42, 0.12)'
               }}
             >
-              <IconButton size="small" onClick={nextTip} aria-label="next tip">
+              <IconButton size="small" onClick={nextTip}>
                 <LightbulbOutlinedIcon fontSize="small" />
               </IconButton>
-              <motion.div
-                key={tip}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.22 }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                  Tip: <Box component="span" sx={{ fontWeight: 650, color: 'text.secondary' }}>{tips[tip]}</Box>
-                </Typography>
-              </motion.div>
+
+              <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                Tip:{' '}
+                <Box component="span" sx={{ fontWeight: 650, color: 'text.secondary' }}>
+                  {tips[tip]}
+                </Box>
+              </Typography>
             </MotionBox>
 
             {/* FOOTER */}
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.6 }}>
               © {new Date().getFullYear()} TaskFlow
             </Typography>
           </Stack>
         </Box>
-      </Container>
+      </Box>
     </GradientBackdrop>
   );
 }

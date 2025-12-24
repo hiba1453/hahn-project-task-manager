@@ -10,7 +10,7 @@ export default function GlassCard(props: CardProps) {
         border: "1px solid rgba(15, 23, 42, 0.10)",
         backdropFilter: "blur(10px)",
         backgroundColor: "rgba(255,255,255,0.78)",
-        borderRadius: 2, // ✅ moins arrondi
+        borderRadius: 2, 
         boxShadow: "0 12px 30px rgba(11, 77, 255, 0.08), 0 2px 10px rgba(0,0,0,0.06)",
         ...props.sx,
       }}
